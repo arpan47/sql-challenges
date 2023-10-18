@@ -16,8 +16,21 @@ insert into att values('A12','18-OCT-23 12:17:12.000 PM', 'OUT');
 insert into att values('A12','18-OCT-23 02:05:40.000 PM', 'IN');
 insert into att values('A12','18-OCT-23 06:15:10.000 PM', 'OUT');
 
-
 select * from att;
+
+--------------------------------------------
+ID	SWIPE_TYM	FLAG
+A11	18-OCT-23 09.05.12.000000 AM	IN
+A11	18-OCT-23 12.05.12.000000 PM	OUT
+A11	18-OCT-23 02.03.30.000000 PM	IN
+A11	18-OCT-23 06.13.50.000000 PM	OUT
+A12	18-OCT-23 09.07.12.000000 AM	IN
+A12	18-OCT-23 12.17.12.000000 PM	OUT
+A12	18-OCT-23 02.05.40.000000 PM	IN
+A12	18-OCT-23 06.15.10.000000 PM	OUT
+----------------------------------------------
+
+
 
 with 
     off_in as (select id, swipe_tym, flag, dense_rank() over (order by id, swipe_tym) as rank 
@@ -39,5 +52,8 @@ with
 
 	(select EMP_ID, sum(total_second) from emp_dtls_sec group by emp_id);
 
-
-
+-------------------------------
+EMP_ID	SUM(TOTAL_SECOND)
+A12	26370
+A11	25820
+--------------------------------
