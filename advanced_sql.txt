@@ -1,0 +1,141 @@
+drop table Premium;
+
+create table Premium(
+    Policy_num varchar2(10),
+    Coverage_no varchar2(10),
+    Prem INTEGER 
+);
+
+select * from Premium;
+
+-----------------------------
+POLICY_NUM	COVERAGE_NO	PREM
+P1			C4			150
+P2			C5			250
+P1			C1			100
+P1			C2			100
+P2			C1			100
+P2			C3			100
+P1			C3			100
+-----------------------------
+
+insert into Premium (policy_num, Coverage_no, Prem) values ('P1', 'C1', 100);
+insert into Premium (policy_num, Coverage_no, Prem) values ('P1', 'C2', 100);
+insert into Premium (policy_num, Coverage_no, Prem) values ('P2', 'C1', 100);
+insert into Premium (policy_num, Coverage_no, Prem) values ('P2', 'C3', 100);
+insert into Premium (policy_num, Coverage_no, Prem) values ('P1', 'C3', 100);
+insert into Premium (policy_num, Coverage_no, Prem) values ('P1', 'C4', 150);
+insert into Premium (policy_num, Coverage_no, Prem) values ('P2', 'C5', 250);
+
+with 
+    A as (select Policy_num, count(1) as cnnt, sum(Prem) as summ from Premium group by Policy_num),
+    B as (select Policy_num, count(1) as cnt1 from Premium where Coverage_no = 'C1' group by Policy_num),
+    C as (select Policy_num, count(1) as cnt2 from Premium where Coverage_no = 'C2' group by Policy_num),
+    D as (select Policy_num, count(1) as cnt3 from Premium where Coverage_no = 'C3' group by Policy_num)
+select A1.policy_num "Policy Number", A1.cnnt "No. of Coverages", nvl(B1.cnt1,0) "C1", nvl(C1.cnt2,0) "C2", nvl(D1.cnt3,0) "C3", A1.summ "Total Premium" from A A1, B B1, C C1, D D1
+where A1.Policy_num = B1.Policy_num(+) and A1.Policy_num = C1.Policy_num(+) and A1.Policy_num = D1.Policy_num(+);
+
+with
+    A as (select Policy_num, count(1) as cnnt, sum(Prem) as summ from Premium group by Policy_num),
+    B as (SELECT * FROM
+    	(SELECT Policy_num, Coverage_no FROM Premium)
+		PIVOT
+        (
+          COUNT(Coverage_no)
+          FOR Coverage_no IN ('C1' C1,'C2' C2,'C3' C3, 'C4' C4, 'C5' C5)
+        )
+        ORDER BY Policy_num)
+select B.Policy_num "Policy Number", A.cnnt "No. of Coverages", B.C1, B.C2, B.C3, B.C4, B.C5, A.summ "Total Premium" from A, B where A.Policy_num = B.Policy_num;
+
+----------------------------------------------------------------------
+Policy Number	No. of Coverages	C1	C2	C3	C4	C5	Total Premium
+P1				4					1	1	1	1	0	450
+P2				3					1	0	1	0	1	450
+----------------------------------------------------------------------
+
+
+
+drop table Prm_prd;
+
+create table Prm_prd(
+    Policy_num varchar2(10),
+    Start_Date date,
+    End_Date date,
+    Prem INTEGER 
+);
+
+truncate table Prm_prd;
+
+insert into Prm_prd (policy_num, Start_Date, End_Date, Prem) values ('PC1', TO_DATE('01-01-23', 'DD-MM-YYYY'),TO_DATE('31-03-23', 'DD-MM-YYYY'), 120);
+insert into Prm_prd (policy_num, Start_Date, End_Date, Prem) values ('PC2', TO_DATE('01-01-24', 'DD-MM-YYYY'),TO_DATE('31-05-24', 'DD-MM-YYYY'), 120);
+insert into Prm_prd (policy_num, Start_Date, End_Date, Prem) values ('P1', TO_DATE('01-01-23', 'DD-MM-YYYY'),TO_DATE('31-12-23', 'DD-MM-YYYY'), 120);
+insert into Prm_prd (policy_num, Start_Date, End_Date, Prem) values ('P2', TO_DATE('01-02-23', 'DD-MM-YYYY'),TO_DATE('31-10-23', 'DD-MM-YYYY'), 90);
+insert into Prm_prd (policy_num, Start_Date, End_Date, Prem) values ('P3', TO_DATE('01-01-23', 'DD-MM-YYYY'),TO_DATE('31-05-23', 'DD-MM-YYYY'), 50);
+
+select * from Prm_prd;
+
+--------------------------------------------
+POLICY_NUM	START_DATE	END_DATE	PREM
+PC2			01-JAN-24	31-MAY-24	120
+P1			01-JAN-23	31-DEC-23	120
+P2			01-FEB-23	31-OCT-23	90
+P3			01-JAN-23	31-MAY-23	50
+PC1			01-JAN-23	31-MAR-23	120
+--------------------------------------------
+
+select 
+    level lvl, 
+    policy_num Policy, 
+    --(level-1) lvl, 
+    add_months(Start_Date, level-1) as "_Start_Date_",
+    add_months(Start_Date, level)-1 as "_End_Date_",
+    Prem/round(months_between(End_Date,Start_Date)) as "Premiumm"
+from Prm_prd  
+connect by rowid = prior rowid and level < round(months_between(End_Date, Start_Date)+1)
+    and prior sys_guid() is not null
+    order by Policy, lvl;
+
+
+------------------------------------------------------------------
+LVL	POLICY	_Start_Date_	_End_Date_	Premiumm
+1	P1		01-Jan-23		31-Jan-23	10
+2	P1		01-Feb-23		28-Feb-23	10
+3	P1		01-Mar-23		31-Mar-23	10
+4	P1		01-Apr-23		30-Apr-23	10
+5	P1		01-May-23		31-May-23	10
+6	P1		01-Jun-23		30-Jun-23	10
+7	P1		01-Jul-23		31-Jul-23	10
+8	P1		01-Aug-23		31-Aug-23	10
+9	P1		01-Sep-23		30-Sep-23	10
+10	P1		01-Oct-23		31-Oct-23	10
+11	P1		01-Nov-23		30-Nov-23	10
+12	P1		01-Dec-23		31-Dec-23	10
+1	P2		01-Feb-23		28-Feb-23	10
+2	P2		01-Mar-23		31-Mar-23	10
+3	P2		01-Apr-23		30-Apr-23	10
+4	P2		01-May-23		31-May-23	10
+5	P2		01-Jun-23		30-Jun-23	10
+6	P2		01-Jul-23		31-Jul-23	10
+7	P2		01-Aug-23		31-Aug-23	10
+8	P2		01-Sep-23		30-Sep-23	10
+9	P2		01-Oct-23		31-Oct-23	10
+1	P3		01-Jan-23		31-Jan-23	10
+2	P3		01-Feb-23		28-Feb-23	10
+3	P3		01-Mar-23		31-Mar-23	10
+4	P3		01-Apr-23		30-Apr-23	10
+5	P3		01-May-23		31-May-23	10
+1	PC1		01-Jan-23		31-Jan-23	40
+2	PC1		01-Feb-23		28-Feb-23	40
+3	PC1		01-Mar-23		31-Mar-23	40
+1	PC2		01-Jan-24		31-Jan-24	24
+2	PC2		01-Feb-24		29-Feb-24	24
+3	PC2		01-Mar-24		31-Mar-24	24
+4	PC2		01-Apr-24		30-Apr-24	24
+5	PC2		01-May-24		31-May-24	24
+------------------------------------------------------------------
+
+
+
+
+
+
