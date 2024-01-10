@@ -352,3 +352,77 @@ ID	STUDENT
 4	Emerson
 5	Jeames
 -----------------
+
+-- 07 ###################################################################################################################
+
+create table sales (
+    prdct_id number,
+    year number,
+    sales number
+);
+
+insert all 
+    into sales(prdct_id,year,sales) values (1,2019,1000)
+    into sales(prdct_id,year,sales) values (1,2020,1200)
+    into sales(prdct_id,year,sales) values (1,2021,1100)
+    into sales(prdct_id,year,sales) values (2,2019,500)
+    into sales(prdct_id,year,sales) values (2,2020,600)
+    into sales(prdct_id,year,sales) values (2,2021,900)
+    into sales(prdct_id,year,sales) values (3,2019,300)
+    into sales(prdct_id,year,sales) values (3,2020,450)
+    into sales(prdct_id,year,sales) values (3,2021,400)
+select 1 from dual;
+
+create table product (
+    prdct_id number,
+    prdct_name varchar(20),
+    category varchar(20)
+);
+
+insert all 
+    into product(prdct_id,prdct_name,category) values (1,'Laptops','Electronics')
+    into product(prdct_id,prdct_name,category) values (2,'Jeans','Clothing')
+    into product(prdct_id,prdct_name,category) values (3,'Chairs','Home Appliances')
+select 1 from dual;
+
+select * from sales;
+----------------------------------------
+PRDCT_ID	YEAR	SALES
+1		2019	1000
+1		2020	1200
+1		2021	1100
+2		2019	500
+2		2020	600
+2		2021	900
+3		2019	300
+3		2020	450
+3		2021	400
+----------------------------------------
+
+select * from product;
+
+----------------------------------------------
+PRDCT_ID	PRDCT_NAME	CATEGORY
+1		Laptops		Electronics
+2		Jeans		Clothing
+3		Chairs		Home Appliances
+-------------------------------------------------
+
+select p.prdct_id, p.prdct_name, p.category from product p inner join 
+(select PRDCT_ID, MIN(diff) as min from
+(select prdct_id, year,sales, lag(sales) over (partition by prdct_id order by year) prev_yr_sales,
+    sales - lag(sales) over (partition by prdct_id order by year) as diff
+    from sales) group by PRDCT_ID having MIN(diff)>0) s on p.prdct_id = s.prdct_id;
+
+
+with saless as 
+    (select PRDCT_ID, MIN(diff) as min from 
+    (select prdct_id, year,sales, lag(sales) over (partition by prdct_id order by year) prev_yr_sales, sales - lag(sales) over (partition by prdct_id order by year) as diff from sales) group by PRDCT_ID having MIN(diff)>0)
+select p.prdct_id, p.prdct_name, p.category from product p inner join saless s on p.prdct_id = s.prdct_id;
+
+--------------------------------------------
+PRDCT_ID	PRDCT_NAME	CATEGORY
+2		Jeans		Clothing
+--------------------------------------------
+
+
