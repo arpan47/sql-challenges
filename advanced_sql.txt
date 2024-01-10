@@ -425,4 +425,23 @@ PRDCT_ID	PRDCT_NAME	CATEGORY
 2		Jeans		Clothing
 --------------------------------------------
 
+-- 08 ###################################################################################################################
 
+create table employee(
+    empid number,
+    ename varchar(20),
+    mgrid number
+);
+
+insert all 
+    into employee(empid,ename,mgrid) values (1,'Boss',null)
+    into employee(empid,ename,mgrid) values (3,'Alice',3)
+    into employee(empid,ename,mgrid) values (2,'Bob',1)
+    into employee(empid,ename,mgrid) values (4,'Daniel',2)
+    into employee(empid,ename,mgrid) values (7,'Luis',4)
+    into employee(empid,ename,mgrid) values (8,'Jhon',3)
+    into employee(empid,ename,mgrid) values (9,'Angela',8)
+    into employee(empid,ename,mgrid) values (77,'Robert',1)
+select 1 from dual;
+
+select * from employee;
