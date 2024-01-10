@@ -260,3 +260,54 @@ EMP_ID	START_DATE	END_DATE	CONSECUTIVE_DAYS
 -----------------------------------------------------------
 
 -- 05 ###################################################################################################################
+
+drop table empp;
+
+create table empp(
+name varchar(30),
+age int
+);
+
+
+insert into empp(name, age) values ('Alice', 28);
+insert into empp(name, age) values ('Bob', 35);
+insert into empp(name, age) values ('Charlie', 42);
+insert into empp(name, age) values ('David', 25);
+insert into empp(name, age) values ('Eva', 31);
+insert into empp(name, age) values ('Frank', 38);
+insert into empp(name, age) values ('Grace', 45);
+insert into empp(name, age) values ('Henry', 29);
+
+select * from empp;
+
+--------------
+NAME	AGE
+Alice	28
+Bob	35
+Charlie	42
+David	25
+Eva	31
+Frank	38
+Grace	45
+Henry	29
+--------------
+
+--- method 1 ---
+
+select name, age from
+(select e.*, NTILE(4) over(order by ROWID) part 
+  from empp e) where part = 3;
+
+select name, age from
+(select e.*, NTILE(4) over(order by ROWNUM) part 
+  from empp e) where part = 3;
+
+--- method 2 ---
+
+SELECT e.* FROM empp e ORDER BY ROWNUM OFFSET (select count(1)/2 from empp) ROWS FETCH NEXT (select count(1)/4 from empp) ROWS ONLY;
+
+--------------
+NAME	AGE
+Eva	31
+Frank	38
+--------------
