@@ -150,7 +150,6 @@ insert into att values('A11','18-OCT-23 09:05:12.000 AM', 'IN');
 insert into att values('A11','18-OCT-23 12:05:12.000 PM', 'OUT');
 insert into att values('A11','18-OCT-23 02:03:30.000 PM', 'IN');
 insert into att values('A11','18-OCT-23 06:13:50.000 PM', 'OUT');
-
 insert into att values('A12','18-OCT-23 09:07:12.000 AM', 'IN');
 insert into att values('A12','18-OCT-23 12:17:12.000 PM', 'OUT');
 insert into att values('A12','18-OCT-23 02:05:40.000 PM', 'IN');
@@ -198,5 +197,66 @@ A11	25820
 
 -- 04 ###################################################################################################################
 
+CREATE TABLE attandance_log (
+    emp_id  INT,
+    log_date DATE,
+    flag CHAR
+);
 
+insert all 
+    into attandance_log(emp_id,log_date,flag) values (101,'02-JAN-2024','N')
+    into attandance_log(emp_id,log_date,flag) values (101,'03-JAN-2024','Y')
+    into attandance_log(emp_id,log_date,flag) values (101,'04-JAN-2024','N')
+    into attandance_log(emp_id,log_date,flag) values (101,'07-JAN-2024','Y')
+    into attandance_log(emp_id,log_date,flag) values (102,'01-JAN-2024','N')
+    into attandance_log(emp_id,log_date,flag) values (102,'02-JAN-2024','Y')
+    into attandance_log(emp_id,log_date,flag) values (102,'03-JAN-2024','Y')
+    into attandance_log(emp_id,log_date,flag) values (102,'04-JAN-2024','N')
+    into attandance_log(emp_id,log_date,flag) values (102,'05-JAN-2024','Y')
+    into attandance_log(emp_id,log_date,flag) values (102,'06-JAN-2024','Y')
+    into attandance_log(emp_id,log_date,flag) values (102,'07-JAN-2024','Y')
+    into attandance_log(emp_id,log_date,flag) values (103,'01-JAN-2024','N')
+    into attandance_log(emp_id,log_date,flag) values (103,'04-JAN-2024','N')
+    into attandance_log(emp_id,log_date,flag) values (103,'05-JAN-2024','Y')
+    into attandance_log(emp_id,log_date,flag) values (103,'06-JAN-2024','Y')
+    into attandance_log(emp_id,log_date,flag) values (103,'07-JAN-2024','N')
+SELECT 1 FROM dual;
 
+select * from attandance_log;
+
+-------------------------------
+EMP_ID	LOG_DATE	FLAG
+101	02-JAN-24	N
+101	03-JAN-24	Y
+101	04-JAN-24	N
+101	07-JAN-24	Y
+102	01-JAN-24	N
+102	02-JAN-24	Y
+102	03-JAN-24	Y
+102	04-JAN-24	N
+102	05-JAN-24	Y
+102	06-JAN-24	Y
+102	07-JAN-24	Y
+103	01-JAN-24	N
+103	04-JAN-24	N
+103	05-JAN-24	Y
+103	06-JAN-24	Y
+103	07-JAN-24	N
+--------------------------------
+
+with
+    cte as (select * from attandance_log where flag = 'Y'),
+	final_table as (select emp_id, log_date, EXTRACT( DAY FROM TO_DATE(log_date, 'DD-Mon-YYYY')) as day, dense_rank() over (partition by emp_id order by log_date) as drnk, 
+    EXTRACT( DAY FROM TO_DATE(log_date, 'DD-Mon-YYYY')) - dense_rank() over (partition by emp_id order by log_date) as diff 
+    from cte),
+	finale as (select emp_id, diff, MIN(log_date) as start_date, MAX(log_date) as end_date, count(1) as consecutive_days from final_table group by emp_id, diff having count(1)> 1)
+    select emp_id, start_date, end_date, consecutive_days from finale;
+
+----------------------------------------------------------
+EMP_ID	START_DATE	END_DATE	CONSECUTIVE_DAYS
+102	02-JAN-24	03-JAN-24	2
+102	05-JAN-24	07-JAN-24	3
+103	05-JAN-24	06-JAN-24	2
+-----------------------------------------------------------
+
+-- 05 ###################################################################################################################
