@@ -445,3 +445,62 @@ insert all
 select 1 from dual;
 
 select * from employee;
+
+-- 09 ###################################################################################################################
+
+drop table Grades;
+drop table Students;
+
+create table Grades(
+    grade number,
+    min_mark number,
+    max_mark number
+);
+
+create table Students(
+    id number,
+    name varchar(20),
+    marks number
+);
+
+insert all 
+    into Grades(grade,min_mark,max_mark) values (1, 0, 9)
+    into Grades(grade,min_mark,max_mark) values (2, 10, 19)
+    into Grades(grade,min_mark,max_mark) values (3, 20, 29)
+    into Grades(grade,min_mark,max_mark) values (4, 30, 39)
+    into Grades(grade,min_mark,max_mark) values (5, 40, 49)
+    into Grades(grade,min_mark,max_mark) values (6, 50, 59)
+    into Grades(grade,min_mark,max_mark) values (7, 60, 69)
+    into Grades(grade,min_mark,max_mark) values (8, 70, 79)
+    into Grades(grade,min_mark,max_mark) values (9, 80, 89)
+    into Grades(grade,min_mark,max_mark) values (10, 90, 100)
+select 1 from dual;
+
+insert all 
+    into Students(id,name,marks) values (1,'Julia', 88)
+    into Students(id,name,marks) values (2,'Samantha', 68)
+    into Students(id,name,marks) values (3,'Maria', 99)
+    into Students(id,name,marks) values (4,'Scarlet', 78)
+    into Students(id,name,marks) values (5,'Ashley', 63)
+    into Students(id,name,marks) values (6,'Jane', 81)
+select 1 from dual;
+
+
+select * from Grades;
+
+select * from Students;
+
+
+select
+    case when 
+    	g.grade in (8,9,10) then s.name
+    else 
+    	Null
+    end name,
+    g.grade, 
+    s.marks 
+from Students s inner join Grades g on s.marks>=g.min_mark and s.marks<=g.max_mark 
+order by g.grade desc,name asc;
+
+
+
